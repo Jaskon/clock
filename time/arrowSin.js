@@ -213,7 +213,7 @@ function addArrowsLayer(stage, centerX, centerY) {
 
 		if (prevMinute != minutes) {		// Minute changing
 
-			prevMinute = (prevMinute == 59 ? -1 : prevMinute);
+			prevMinute = (prevMinute > minutes ? prevMinute - 60 : prevMinute);
 
 			if (tPinkieTime == 0) {
 				tPinkieTime = (new Date()).getTime();
@@ -244,10 +244,10 @@ function addArrowsLayer(stage, centerX, centerY) {
 					mText1.setText((minutes == 0 ? 60 : minutes) - 1);
 					mText2.setText(minutes + 1);
 					
-					mText1.setX(centerX + 216*Math.cos((minutes + (minutes > 9 ? 0.34 : 0.17) - 1) * 6 * const0 + const1));
-					mText1.setY(centerY + 216*Math.sin((minutes + (minutes > 9 ? 0.34 : 0.17) - 1) * 6 * const0 + const1));
-					mText2.setX(centerX + 216*Math.cos((minutes + (minutes > 9 ? 0.34 : 0.17) + 1) * 6 * const0 + const1));
-					mText2.setY(centerY + 216*Math.sin((minutes + (minutes > 9 ? 0.34 : 0.17) + 1) * 6 * const0 + const1));
+					mText1.setX(centerX + 212*Math.cos((minutes + (minutes > 9 ? 0.34 : 0.17) - 1) * 6 * const0 + const1));
+					mText1.setY(centerY + 212*Math.sin((minutes + (minutes > 9 ? 0.34 : 0.17) - 1) * 6 * const0 + const1));
+					mText2.setX(centerX + 212*Math.cos((minutes + (minutes > 9 ? 0.34 : 0.17) + 1) * 6 * const0 + const1));
+					mText2.setY(centerY + 212*Math.sin((minutes + (minutes > 9 ? 0.34 : 0.17) + 1) * 6 * const0 + const1));
 					
 					mText1.rotation((minutes - 1) * 6 + 180);
 					mText2.rotation((minutes + 1) * 6 + 180);
