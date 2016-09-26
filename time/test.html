@@ -1,0 +1,39 @@
+<body>
+    <div id="container" style="width: 640px; height: 640px; margin: auto"></div>
+</body>
+
+<script>
+	var _globals = {};
+</script>
+
+
+
+<script  src="../konvajs/konva.js"></script>
+<script src="../statsjs/stats.js"></script>
+
+<script src="circles.js"></script>
+<script src="bg.js"></script>
+<script src="arrowSin.js"></script>
+
+<script>
+	var stats = new Stats();
+	stats.showPanel(0);
+	document.body.appendChild(stats.dom);
+	
+	var centerX = document.getElementById("container").clientWidth / 2;
+	var centerY = document.getElementById("container").clientHeight / 2;
+	
+	var stage = new Konva.Stage({
+		container: "container",
+		width: centerX * 2,
+		height: centerY * 2
+	});
+	
+	
+	addBGLayer(stage, centerX, centerY);
+	
+	//addCirclesLayer(stage, centerX, centerY);
+	
+	addArrowsLayer(stage, centerX, centerY);
+	
+</script>

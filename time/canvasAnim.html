@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Canvas animation</title>
+</head>
+<body>
+	<div id="container" style="width: 700px; height: 700px"></div>
+
+
+	<script src="konvajs/konva.js"></script>
+
+	<script src="arrow.js"></script>
+
+	<script>
+		var stage = new Konva.Stage({
+			container: "container",
+			width: document.getElementById("container").clientWidth,
+			height: document.getElementById("container").clientHeight
+		});
+
+		var layer = new Konva.Layer();
+
+		var arrowGr = new Konva.Group({x: 100, y: 100});
+
+		var arrowDrawing = arrowWrap();
+		var arrow = new Konva.Shape({
+			sceneFunc: arrowDrawing,
+			x: 0,
+			y: 0,
+			stroke: "black",
+			strokeWidth: 3,
+			lineCap: "round",
+			lineJoin: "round"
+		});
+
+		arrowGr.add(arrow);
+		arrowGr.add(new Konva.Text({text: "seconds", x: 8, y: 6, rotation: 90}));
+
+		layer.add(arrowGr);
+
+		stage.add(layer);
+
+
+		var anim = new Konva.Animation(function(frame) {
+			arrowGr.rotate(0.02);
+		}, layer);
+
+		anim.start();
+	</script>
+</body>
+</html>
