@@ -42,3 +42,5 @@ function addBGLayer(stage, centerX, centerY) {
 	
 	stage.add(layerBG);
 }
+
+// comment
