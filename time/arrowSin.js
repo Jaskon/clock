@@ -13,7 +13,7 @@ function arrowHoursTwiCreate(layer, centerX, centerY) {
 		currTime = new Date();
 		dTime = (currTime.getTime() - prevTime.getTime()) / 1000;
 		angle += dTime * 90;
-		angle = 33;        // static sinusoid-arrow
+		//angle = 33;        // static sinusoid-arrow
 
 
 		cx.beginPath();
