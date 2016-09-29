@@ -4,7 +4,7 @@ function addBGLayer(stage, centerX, centerY) {
 	var numbers = [];
 	for (var i = 0; i < 12; i++) {
 		numbers[i] = new Konva.Text({
-			x: centerX - (i > 9 ? 18 : 8) + (centerX - 45) * Math.cos(30 * (i + 1) * Math.PI/180 + Math.PI*3/2),
+			x: centerX - (i > 8 ? 18 : 8) + (centerX - 45) * Math.cos(30 * (i + 1) * Math.PI/180 + Math.PI*3/2),
 			y: centerY - 15 + (centerY - 45) * Math.sin(30 * (i + 1) * Math.PI/180 + Math.PI*3/2),
 			text: i+1,
 			fontSize: 30
