@@ -1,38 +1,231 @@
-function arrowWrap() {
-
+function arrowHoursTwiCreate(layer, centerX, centerY) {
+	
 	var prevTime = new Date();
 	var currTime = new Date();
 
 	var const0 = Math.PI/180
 	var const270 = 3*Math.PI/2;
-	var dTime = 0, l = 0, angle = 0;
-
+	var dTime = 0, angle = 0;
+	
 	var arrowDrawing = function(cx) {
 		prevTime = currTime;
 		currTime = new Date();
 		dTime = (currTime.getTime() - prevTime.getTime()) / 1000;
-		//l += dTime * 4;
 		angle += dTime * 90;
-		//angle = 33;        // static sinusoid-arrow
+		angle = 33;        // static sinusoid-arrow
 
 
 		cx.beginPath();
-
-
+		
+		
+		cx.fillStyle = "purple";
 		for (var i = 0; i < 60; i++)
-			cx.fillRect(l + i, 20 * Math.cos((angle + i*4) * const0), 1, 1);
+			cx.fillRect(i, 15 * Math.cos((angle + i*4) * const0), 1, 1);
 		for (var i = 0; i < 60; i++)
-			cx.fillRect(l + i, 20 * Math.cos((180 + angle + i*4) * const0), 1, 1);
-
-
+			cx.fillRect(i, 15 * Math.cos((180 + angle + i*4) * const0), 1, 1);
+		
+		
 		cx.strokeShape(this);
 	};
-
-	return arrowDrawing;
+	
+	
+	var arrow = new Konva.Shape({
+		sceneFunc: arrowDrawing,
+		scale: { x: 2, y: 2 },
+		x: centerX,
+		y: centerY,
+		lineJoin: "round",
+		strokeWidth: 2
+	});
+	
+	layer.add(arrow);
+	
+	
+	var subArrowOpacity = 0;
+	var subArrowDrawing = function(cx) {
+		
+		cx.beginPath();
+		
+		
+		cx.moveTo(0, 0);
+		for (var i = 0; i < 160; i += 2) {
+			subArrowOpacity = (i < 40 ? subArrowOpacity + 0.01 : (i > 119 ? subArrowOpacity - 0.01 : subArrowOpacity));
+			cx.fillStyle = "rgba(128, 0, 128, " + subArrowOpacity + ")";
+			cx.fillRect(i,-1, 2, 2);
+		}
+		
+		
+		cx.fillStrokeShape(this);
+	};
+	
+	
+	var subArrow = new Konva.Shape({
+		sceneFunc: subArrowDrawing,
+		x: centerX,
+		y: centerY,
+		lineCap: "round",
+		strokeWidth: 2
+	});
+	
+	layer.add(subArrow);
+	
+	
+	
+	var animation = function(vars) {
+		arrow.setX(centerX + 30 * Math.cos(vars.hours % 12 * 30 * vars.const0 + vars.const1));
+		arrow.setY(centerY + 30 * Math.sin(vars.hours % 12 * 30 * vars.const0 + vars.const1));
+		
+		arrow.rotation(vars.hours % 12 * 30 + 270);
+		
+		
+		subArrow.setX(centerX + 25*Math.cos((vars.time/3600000)%12*30*vars.const0 + vars.const2));
+		subArrow.setY(centerY + 25*Math.sin((vars.time/3600000)%12*30*vars.const0 + vars.const2));
+		
+		subArrow.rotation((vars.time/3600000)%12*30);
+	};
+	
+	return animation;
 }
 
 
-function dashWrap() {
+
+
+function arrowMinutesPinkieCreate(layer, centerX, centerY) {
+
+	var prevTime = new Date();
+	var currTime = new Date();
+	var dTime = 0, dTimeSum = 0;
+	
+	var pinkie = new Image();
+	pinkie.src = "images/jumping_pinkie_full_flipped.png";
+	_globals.pinkieFrame = 0;		// Current animation frame number
+	_globals.pinkieFrameTime = 100;		// Animation speed (one frame time)
+	_globals.pinkieTotalFramesTime = _globals.pinkieFrameTime * 8;
+	
+
+	var pinkieDrawing = function(cx) {
+		prevTime = currTime;
+		currTime = new Date();
+		
+		cx.beginPath();
+		
+		cx.drawImage(pinkie, _globals.pinkieFrame * 89, 0, 89, 90, -37, -90, 89, 90);
+	};
+
+	var pinkieArrow = new Konva.Shape({
+		sceneFunc: pinkieDrawing,
+		x: centerX,
+		y: centerY,
+		stroke: "purple",
+		lineJoin: "round",
+		strokeWidth: 2
+	});
+
+	layer.add(pinkieArrow);
+
+
+	var mText1 = new Konva.Text({
+		x: 0,
+		y: 0,
+		text: 0,
+		fontSize: 14,
+		fill: "indigo"
+	});
+	
+	var mText2 = new Konva.Text({
+		x: 0,
+		y: 0,
+		text: 0,
+		fontSize: 14,
+		fill: "indigo"
+	});
+
+	layer.add(mText1);
+	layer.add(mText2);
+
+
+
+	var animation = function(vars) {
+		/* <This> should be in pinkieDrawing function. But while it here, animation looks better */
+		vars.dTimeSum += vars.dTime;
+		vars.dTimeSum = (vars.dTimeSum >= _globals.pinkieTotalFramesTime ? vars.dTimeSum % _globals.pinkieTotalFramesTime :
+            (vars.dTimeSum <= _globals.pinkieTotalFramesTime ? Math.abs(vars.dTimeSum) % _globals.pinkieTotalFramesTime : vars.dTimeSum));		// To 0 frame
+
+		_globals.pinkieFrame = Math.floor(vars.dTimeSum / _globals.pinkieFrameTime);
+		/* ^This^ */
+
+		if (vars.prevMinute != vars.minutes) {		// Minute changing
+
+			vars.currAimMinute = vars.prevMinute = (vars.prevMinute > vars.minutes ? vars.prevMinute - 60 : vars.prevMinute);
+			
+			vars.currAimMinute = (vars.currAimMinute + 4 < vars.minutes ? (vars.currAimMinute + 4 >= 60 ? vars.currAimMinute + 4 - 60 : vars.currAimMinute + 4) : vars.minutes);        // If we didn't see clock tab for a long time (do several pinkie jumps, not one)
+			
+			if (vars.tPinkieTime == 0) {
+				vars.tPinkieTime = (new Date()).getTime();
+				vars.tPinkieFrame = _globals.pinkieFrame;
+				vars.tPinkieTime += 2 - (vars.tPinkieFrame > 2 ? vars.tPinkieFrame - 8 : vars.tPinkieFrame) * _globals.pinkieFrameTime;
+			}
+
+			if (vars.time > vars.tPinkieTime)
+				vars.animateMinute = true;
+			
+			if (vars.animateMinute) {
+				pinkieArrow.setX(vars.centerX + 230*Math.cos((vars.currAimMinute - (vars.currAimMinute - vars.prevMinute) * (7- (_globals.pinkieFrame < 1 ? 1 : _globals.pinkieFrame)) / 6) * 6 * vars.const0 + vars.const1));
+				pinkieArrow.setY(vars.centerY + 230*Math.sin((vars.currAimMinute - (vars.currAimMinute - vars.prevMinute) * (7 - (_globals.pinkieFrame < 1 ? 1 : _globals.pinkieFrame)) / 6) * 6 * vars.const0 + vars.const1));
+				
+				pinkieArrow.rotation((vars.currAimMinute - (vars.currAimMinute - vars.prevMinute) * (6 - (_globals.pinkieFrame < 1 ? 1 : _globals.pinkieFrame)) / 5) * 6 + 180);
+				
+				
+				if (vars.time - vars.tPinkieTime > 700) {        // Last frame (defense from lagging)
+
+					pinkieArrow.setX(vars.centerX + 230 * Math.cos(vars.currAimMinute * 6 * vars.const0 + vars.const1));
+					pinkieArrow.setY(vars.centerY + 230 * Math.sin(vars.currAimMinute * 6 * vars.const0 + vars.const1));
+					
+					pinkieArrow.rotation(vars.currAimMinute * 6 + 180);
+					
+					
+					mText1.setText((vars.currAimMinute == 0 ? 60 : (vars.currAimMinute < 0 ? vars.currAimMinute + 60 : vars.currAimMinute)) - 1);
+					mText2.setText((vars.currAimMinute < 0 ? vars.currAimMinute + 60 : vars.currAimMinute) + 1);
+					
+					mText1.setX(vars.centerX + 212*Math.cos((vars.currAimMinute + (vars.currAimMinute > 9 ? 0.34 : 0.17) - 1) * 6 * vars.const0 + vars.const1));
+					mText1.setY(vars.centerY + 212*Math.sin((vars.currAimMinute + (vars.currAimMinute > 9 ? 0.34 : 0.17) - 1) * 6 * vars.const0 + vars.const1));
+					mText2.setX(vars.centerX + 212*Math.cos((vars.currAimMinute + (vars.currAimMinute > 9 ? 0.34 : 0.17) + 1) * 6 * vars.const0 + vars.const1));
+					mText2.setY(vars.centerY + 212*Math.sin((vars.currAimMinute + (vars.currAimMinute > 9 ? 0.34 : 0.17) + 1) * 6 * vars.const0 + vars.const1));
+					
+					mText1.rotation((vars.currAimMinute - 1) * 6 + 180);
+					mText2.rotation((vars.currAimMinute + 1) * 6 + 180);
+
+
+					vars.prevMinute = vars.currAimMinute;
+					vars.animateMinute = false;
+					vars.tPinkieTime = 0;
+				}
+
+			} else {		// For starting position (do I need it?)
+
+				pinkieArrow.setX(vars.centerX + 230*Math.cos(vars.prevMinute * 6 * vars.const0 + vars.const1));
+				pinkieArrow.setY(vars.centerY + 230*Math.sin(vars.prevMinute * 6 * vars.const0 + vars.const1));
+
+				pinkieArrow.rotation(vars.prevMinute * 6 + 180);
+			}
+
+		} else {		// Minute static
+			
+			/*pinkieArrow.setX(vars.centerX + 150*Math.cos(vars.minutes*6*vars.const0 + vars.const1));
+			pinkieArrow.setY(vars.centerY + 150*Math.sin(vars.minutes*6*vars.const0 + vars.const1));
+			
+			pinkieArrow.rotation(vars.minutes*6 + 270);*/
+		}
+	};
+
+
+	return animation;
+}
+
+
+
+
+function arrowSecondsDashCreate(layer, centerX, centerY) {
 
 	var prevTime = new Date();
 	var currTime = new Date();
@@ -61,43 +254,30 @@ function dashWrap() {
 		}
 	};
 
-	return dashDrawing;
-}
 
-function pinkieWrap() {
+	var dashArrow = new Konva.Shape({
+		sceneFunc: dashDrawing,
+		x: centerX,
+		y: centerY,
+		stroke:"black",
+		lineJoin: "round",
+		strokeWidth: 2
+	});
 
-	var prevTime = new Date();
-	var currTime = new Date();
-	var dTime = 0, dTimeSum = 0;
-	
-	var pinkie = new Image();
-	pinkie.src = "images/jumping_pinkie_full_flipped.png";
-	_globals.pinkieFrame = 0;		// Current animation frame number
-	_globals.pinkieFrameTime = 100;		// Animation speed (one frame time)
-	_globals.pinkieTotalFramesTime = _globals.pinkieFrameTime * 8;
-	
+	layer.add(dashArrow);
 
-	var pinkieDrawing = function(cx) {
-		prevTime = currTime;
-		currTime = new Date();
-		//dTime = (currTime.getTime() - prevTime.getTime());
+
+
+	var animation = function(vars) {
+		dashArrow.setX(vars.centerX + 285*Math.cos((vars.time/1000)%60*6*vars.const0 + vars.const1));
+		dashArrow.setY(vars.centerY + 285*Math.sin((vars.time/1000)%60*6*vars.const0 + vars.const1));
 		
-
-		/*dTimeSum += dTime;
-		if (dTimeSum >= totalFramesTime) {		// To 0 frame
-			dTimeSum = dTimeSum % totalFramesTime;
-		}
-
-		_globals.pinkieFrame = Math.floor(dTimeSum / _globals.pinkieFrameTime);*/
-
-		
-		cx.beginPath();
-		
-		cx.drawImage(pinkie, _globals.pinkieFrame * 89, 0, 89, 90, -37, -90, 89, 90);
+		dashArrow.rotation((vars.time/1000)%60*6 + 5);
 	};
 
-	return pinkieDrawing;
+	return animation;
 }
+
 
 
 
@@ -106,190 +286,63 @@ function addArrowsLayer(stage, centerX, centerY) {
 	var layer = new Konva.Layer();
 	
 	
-	var arrowDrawing = arrowWrap();
-	var arrowH = new Konva.Shape({
-		sceneFunc: arrowDrawing,
-		scale: { x: 1.6, y: 1.6 },
-		x: centerX,
-		y: centerY,
-		stroke: "purple",
-		lineJoin: "round",
-		strokeWidth: 2
-	});
-	//arrowH.cache();
+	var arrowHoursTwiAnimation = arrowHoursTwiCreate(layer, centerX, centerY);
+
+	var arrowMinutesPinkieAnimation = arrowMinutesPinkieCreate(layer, centerX, centerY);
+
+	var arrowSecondsDashAnimation = arrowSecondsDashCreate(layer, centerX, centerY);
 	
-	var pinkieDrawing = pinkieWrap();
-	var arrowM = new Konva.Shape({
-		sceneFunc: pinkieDrawing,
-		x: centerX,
-		y: centerY,
-		stroke: "purple",
-		lineJoin: "round",
-		strokeWidth: 2
-	});
-	//arrowM.cache();
-	
-	var dashDrawing = dashWrap();
-	var arrowS = new Konva.Shape({
-		sceneFunc: dashDrawing,
-		x: centerX,
-		y: centerY,
-		stroke:"black",
-		lineJoin: "round",
-		strokeWidth: 2
-	});
-	//arrowS.cache();
-	
-	var mText1 = new Konva.Text({
-		x: 0,
-		y: 0,
-		text: 0,
-		fontSize: 14,
-		fill: "indigo"
-	});
-	
-	var mText2 = new Konva.Text({
-		x: 0,
-		y: 0,
-		text: 0,
-		fontSize: 14,
-		fill: "indigo"
-	})
-	
-	
-	layer.add(arrowH);
-	layer.add(arrowM);
-	layer.add(arrowS);
-	
-	layer.add(mText1);
-	layer.add(mText2);
 	
 	stage.add(layer);
-	
-	
-	var degreesPerSec = 1;
-	var const0 = Math.PI/180;        // Math.PI/180 * 3/2 ??? ???????? (? /1000 ??? ??????)
-	var const1 = Math.PI * 3 / 2;
-	var const2 = Math.PI * 2;
-	
-	var constAnim = 200;        // For arrow animation (speed?)
-	var date = new Date(), prevTime = (new Date()).getTime(), time = (new Date()).getTime(), minutes, prevMinute = (new Date()).getMinutes() - 1, dTime = 0, dTimeSum = 0;
-	var transition = 0.5, transitionTimeLeft = transition;
-	var tPinkieTime = 0, tPinkieFrame, animateMinute = false;
+
+
+
+	var vars = {
+		centerX: centerX,
+		centerY: centerY,
+
+		degreesPerSec: 1,
+		const0: Math.PI/180,        // Math.PI/180 * 3/2 ??? ???????? (? /1000 ??? ??????)
+		const1: Math.PI * 3 / 2,
+		const2: Math.PI * 2,
+		
+		constAnim: 200,        // For arrow animation (speed?)
+
+		date: new Date(),
+		prevTime: (new Date()).getTime(),
+		time: (new Date()).getTime(),
+		minutes: 0,
+		hours: 0,
+		prevMinute: (new Date()).getMinutes() - 1,
+	    currAimMinute: (new Date()).getMinutes() - 1,
+	    dTime: 0,
+	    dTimeSum: 0,
+
+		tPinkieTime: 0,
+		tPinkieFrame: 0,
+		animateMinute: false
+	};
 	
 	
 	
 	var animation = new Konva.Animation(function(frame) {
-		date = new Date();
-		prevTime = time;
-		time = date.getTime();
-		minutes = date.getMinutes();
-		dTime = (time - prevTime);
+
+		vars.date = new Date();
+		vars.prevTime = vars.time;
+		vars.time = vars.date.getTime();
+		vars.minutes = vars.date.getMinutes();
+		vars.hours = vars.date.getHours();
+		vars.dTime = (vars.time - vars.prevTime);
 
 
 		stats.begin();
+
+
+		arrowSecondsDashAnimation(vars);
+
+		arrowMinutesPinkieAnimation(vars);
 		
-		
-		arrowH.setX(centerX + 20*Math.cos((time/3600000)%12*30*const0 + const2));
-		arrowH.setY(centerY + 20*Math.sin((time/3600000)%12*30*const0 + const2));
-		
-		arrowS.setX(centerX + 285*Math.cos((time/1000)%60*6*const0 + const1));
-		arrowS.setY(centerY + 285*Math.sin((time/1000)%60*6*const0 + const1));
-		
-		// Rotation
-		arrowS.rotation((time/1000)%60*6 + 5);
-		arrowH.rotation((time/3600000)%12*30);
-		
-		
-		/* Minute arrow */
-		/* <This> should be in pinkieDrawing function. But while it here, animation looks better */
-		dTimeSum += dTime;
-		if (dTimeSum >= _globals.pinkieTotalFramesTime) {		// To 0 frame
-			dTimeSum = dTimeSum % _globals.pinkieTotalFramesTime;
-		}
-
-		_globals.pinkieFrame = Math.floor(dTimeSum / _globals.pinkieFrameTime);
-		/* ^This^ */
-
-		if (prevMinute != minutes) {		// Minute changing
-
-			prevMinute = (prevMinute > minutes ? prevMinute - 60 : prevMinute);
-
-			if (tPinkieTime == 0) {
-				tPinkieTime = (new Date()).getTime();
-				tPinkieFrame = _globals.pinkieFrame;
-				tPinkieTime += 2 - (tPinkieFrame > 2 ? tPinkieFrame - 8 : tPinkieFrame) * _globals.pinkieFrameTime;
-			}
-
-			if (time > tPinkieTime)
-				animateMinute = true;
-
-			if (animateMinute) {
-				arrowM.setX(centerX + 230*Math.cos((minutes - (minutes - prevMinute) * (7- (_globals.pinkieFrame < 1 ? 1 : _globals.pinkieFrame)) / 6) * 6 * const0 + const1));
-				arrowM.setY(centerY + 230*Math.sin((minutes - (minutes - prevMinute) * (7 - (_globals.pinkieFrame < 1 ? 1 : _globals.pinkieFrame)) / 6) * 6 * const0 + const1));
-				
-				arrowM.rotation((minutes - (minutes - prevMinute) * (6 - (_globals.pinkieFrame < 1 ? 1 : _globals.pinkieFrame)) / 5) * 6 + 180);
-				
-				
-				
-
-				if (time - tPinkieTime > 700) {        // Last frame (save from lagging)
-
-					arrowM.setX(centerX + 230*Math.cos(minutes * 6 * const0 + const1));
-					arrowM.setY(centerY + 230*Math.sin(minutes * 6 * const0 + const1));
-					
-					arrowM.rotation(minutes * 6 + 180);
-					
-					
-					mText1.setText((minutes == 0 ? 60 : minutes) - 1);
-					mText2.setText(minutes + 1);
-					
-					mText1.setX(centerX + 212*Math.cos((minutes + (minutes > 9 ? 0.34 : 0.17) - 1) * 6 * const0 + const1));
-					mText1.setY(centerY + 212*Math.sin((minutes + (minutes > 9 ? 0.34 : 0.17) - 1) * 6 * const0 + const1));
-					mText2.setX(centerX + 212*Math.cos((minutes + (minutes > 9 ? 0.34 : 0.17) + 1) * 6 * const0 + const1));
-					mText2.setY(centerY + 212*Math.sin((minutes + (minutes > 9 ? 0.34 : 0.17) + 1) * 6 * const0 + const1));
-					
-					mText1.rotation((minutes - 1) * 6 + 180);
-					mText2.rotation((minutes + 1) * 6 + 180);
-
-
-					prevMinute = minutes;
-					animateMinute = false;
-					tPinkieTime = 0;
-				}
-			} else {		// For starting position (do I need it?)
-
-				arrowM.setX(centerX + 230*Math.cos(prevMinute * 6 * const0 + const1));
-				arrowM.setY(centerY + 230*Math.sin(prevMinute * 6 * const0 + const1));
-
-				arrowM.rotation(prevMinute * 6 + 180);
-			}
-
-			
-			/*transitionTimeLeft -= (frame.timeDiff) / 1000;
-			
-			arrowM.setX(centerX + 230*Math.cos((minutes - (minutes - prevMinute) * transitionTimeLeft / transition)*6*const0 + const1));
-			arrowM.setY(centerY + 230*Math.sin((minutes - (minutes - prevMinute) * transitionTimeLeft / transition)*6*const0 + const1));
-			
-			arrowM.rotation((minutes - (minutes - prevMinute) * transitionTimeLeft / transition)*6 + 180);
-			
-			if (transitionTimeLeft <= 0) {
-				arrowM.setX(centerX + 230*Math.cos(minutes*6*const0 + const1));
-				arrowM.setY(centerY + 230*Math.sin(minutes*6*const0 + const1));
-				
-				arrowM.rotation(minutes*6 + 180);
-				
-				prevMinute = minutes;
-				transitionTimeLeft = transition;
-			}*/
-		} else {		// Minute static
-			
-			/*arrowM.setX(centerX + 150*Math.cos(minutes*6*const0 + const1));
-			arrowM.setY(centerY + 150*Math.sin(minutes*6*const0 + const1));
-			
-			arrowM.rotation(minutes*6 + 270);*/
-		}
-		/* ^Minute arrow^ */
+		arrowHoursTwiAnimation(vars);
 		
 
 		stats.end();
