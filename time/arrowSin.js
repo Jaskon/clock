@@ -6,6 +6,7 @@ function arrowHoursTwiCreate(layer, centerX, centerY) {
 	var const0 = Math.PI/180
 	var const270 = 3*Math.PI/2;
 	var dTime = 0, angle = 0;
+
 	
 	var arrowDrawing = function(cx) {
 		prevTime = currTime;
@@ -40,6 +41,7 @@ function arrowHoursTwiCreate(layer, centerX, centerY) {
 	
 	layer.add(arrow);
 	
+
 	
 	var subArrowOpacity = 0;
 	var subArrowDrawing = function(cx) {
@@ -68,7 +70,55 @@ function arrowHoursTwiCreate(layer, centerX, centerY) {
 	});
 	
 	layer.add(subArrow);
+
+
+
+	/* The circle arount current hours number */
+	var circleArrowDrawing = function(cx) {
+
+		cx.beginPath();
+
+
+		cx.arc(0, 0, 25, 0, 2 * Math.PI);
+
+		cx.strokeStyle = "purple";
+		cx.lineWidth = 3;
+		cx.stroke();
+	}
+
+
+	var circleArrow = new Konva.Shape({
+		sceneFunc: circleArrowDrawing,
+		x: centerX,
+		y: centerY
+	});
+
+	layer.add(circleArrow);
+
+
+
+	/* The line between current and next hours numbers */
+	var subCircleArrowDrawing = function(cx) {
+
+		cx.beginPath();
+
+
+		cx.arc(0, 0, centerX - 45, (currTime.getHours() + 0.18) * 30 * const0 + const270, (currTime.getHours() + ((currTime.getTime()/3600000)%1)*0.64 + 0.18) * 30 * const0 + const270);
+
+		cx.strokeStyle = "purple";
+		cx.lineWidth = 2;
+		cx.stroke();
+	}
+
+
+	var subCircleArrow = new Konva.Shape({
+		sceneFunc: subCircleArrowDrawing,
+		x: centerX,
+		y: centerY
+	});
 	
+	layer.add(subCircleArrow);
+
 	
 	
 	var animation = function(vars) {
@@ -78,10 +128,14 @@ function arrowHoursTwiCreate(layer, centerX, centerY) {
 		arrow.rotation(vars.hours % 12 * 30 + 270);
 		
 		
-		subArrow.setX(centerX + 25*Math.cos((vars.time/3600000)%12*30*vars.const0 + vars.const2));
-		subArrow.setY(centerY + 25*Math.sin((vars.time/3600000)%12*30*vars.const0 + vars.const2));
+		subArrow.setX(centerX + 25 * Math.cos((vars.time/3600000)%12*30*vars.const0 + vars.const2));
+		subArrow.setY(centerY + 25 * Math.sin((vars.time/3600000)%12*30*vars.const0 + vars.const2));
 		
 		subArrow.rotation((vars.time/3600000)%12*30);
+
+
+		circleArrow.setX(centerX + (centerX - 45) * Math.cos(vars.hours % 12 * 30 * vars.const0 + vars.const1));
+		circleArrow.setY(centerY + (centerY - 45) * Math.sin(vars.hours % 12 * 30 * vars.const0 + vars.const1));
 	};
 	
 	return animation;
